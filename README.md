@@ -11,9 +11,9 @@ We also introduced a subset of the DeepSolarEye dataset with hand labeled semant
 
 SoilingNet consists of 2 sub-systems, the first is a semantic segmentation model, which we are able to train in a fully supervised manner, that predicts soiling type and distribution from images of a solar panel. The second system is a classification model that produces a prediction for soiling impact severity.
 
-Solar Panel Image            |  Segmentation Prediction    
-:-------------------------:|:-------------------------:
-![in1](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test1.png)   | ![pred1](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out1.png)
-![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test2.png)| ![pred2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out2.png)
+Solar Panel Image          |  Segmentation Prediction | Solar Panel Image | Segmentation Prediction
+:-------------------------:|:-------------------------:|:-----------------:|:--------------------:
+![in1](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test1.png)   | ![pred1](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out1.png) |![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test2.png)| ![pred2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out2.png)
+
 ![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test3.png)| ![pred3](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out3.png)
 ![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test4.png) | ![pred4](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out4.png)
