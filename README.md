@@ -11,6 +11,6 @@ We also introduced a subset of the DeepSolarEye dataset with hand labeled semant
 
 SoilingNet consists of 2 sub-systems, the first is a semantic segmentation model, which we are able to train in a fully supervised manner, that predicts soiling type and distribution from images of a solar panel. The second system is a classification model that produces a prediction for soiling impact severity.
 
-Solar Panel Image            |  Segmentation Label     | Segmentation Prediction
-:-------------------------:|:-------------------------:|:--------------------:
-![](https://...Dark.png)   | ![](https://...Ocean.png) |
+Solar Panel Image            |  Segmentation Prediction    
+:-------------------------:|:-------------------------:
+![](https://...Dark.png)   | ![](examples\out1.png) 
