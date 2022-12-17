@@ -13,4 +13,7 @@ SoilingNet consists of 2 sub-systems, the first is a semantic segmentation model
 
 Solar Panel Image            |  Segmentation Prediction    
 :-------------------------:|:-------------------------:
-![](https://...Dark.png)   | ![](examples\out1.png) 
+![](https://...Dark.png)   | ![pred1](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out1.png)
+![](https://...Dark.png)   | ![pred2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out2.png)
+![](https://...Dark.png)   | ![pred3](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out3.png)
+![](https://...Dark.png)   | ![pred4](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out4.png)
