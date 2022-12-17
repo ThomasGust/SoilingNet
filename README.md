@@ -15,5 +15,4 @@ Solar Panel Image          |  Segmentation Prediction | Solar Panel Image | Segm
 :-------------------------:|:-------------------------:|:-----------------:|:--------------------:
 ![in1](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test1.png)   | ![pred1](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out1.png) |![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test2.png)| ![pred2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out2.png)
 
-![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test3.png)| ![pred3](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out3.png)
-![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test4.png) | ![pred4](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out4.png)
+![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test3.png)| ![pred3](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out3.png) | ![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test4.png) | ![pred4](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out4.png)
