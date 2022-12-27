@@ -4,6 +4,135 @@ import torch
 from torch.utils.data import Dataset
 from skimage import io
 import numpy as np
+import shutil
+from sklearn.model_selection import train_test_split
+
+
+def tts(path, splits=[0.2, 0.5, 0.7]):
+    if not os.path.exists("SplitDatasets"):
+        os.mkdir("SplitDatasets")
+    
+    img_names = os.listdir(os.path.join(path, 'images'))
+    label_names = os.listdir(os.path.join(path, "labels"))
+
+    for i, s in enumerate(splits):
+
+        X_train, X_test, y_train, y_test = train_test_split(img_names, label_names, random_state=314, test_size=s,shuffle=True)
+        per = int(s*100)
+
+        if os.path.exists(f"SplitDatasets\\Dataset{per}"):
+            shutil.rmtree(f"SplitDatasets\\Dataset{per}")
+        
+        os.mkdir(f"SplitDatasets\\Dataset{per}")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\train")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\train\\images")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\test")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\test\\images")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\train\\labels")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\test\\labels")
+
+        #train_dataset = training_datasets[i]
+        test_dataset = zip(X_test, y_test)
+        train_dataset = zip(X_train, y_train)
+    
+        for sample in train_dataset:
+            img_name, label_name = sample
+
+            img_path_src = os.path.join(path, "images", img_name)
+            label_path_src = os.path.join(path, "labels", label_name)
+
+            img_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\train\\images", img_name)
+            label_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\train\\labels", label_name)
+
+            shutil.copyfile(img_path_src, img_path_dst)
+            shutil.copyfile(label_path_src, label_path_dst)
+        
+        for sample in test_dataset:
+            img_name, label_name = sample
+
+            img_path_src = os.path.join(path, "images", img_name)
+            label_path_src = os.path.join(path, "labels", label_name)
+
+            img_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\test\\images", img_name)
+            label_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\test\\labels", label_name)
+
+            shutil.copyfile(img_path_src, img_path_dst)
+            shutil.copyfile(label_path_src, label_path_dst)
+
+
+
+def split_segmentation_dataset(path="Dataset", splits=[0.2, 0.5, 0.7]):
+    if not os.path.exists("SplitDatasets"):
+        os.mkdir("SplitDatasets")
+    
+    img_names = os.listdir(os.path.join(path, 'images'))
+    label_names = os.listdir(os.path.join(path, "labels"))
+
+    names = zip(img_names, label_names)
+    test_datasets = []
+    training_datasets = []
+
+    for split in splits:
+        n = list(names)
+
+        a = int(split*len(img_names))-1
+        b = int((1.0-split)*len(img_names))+1
+
+        print(f"{a}:{b}")
+
+        #test_dataset = list(n)[a:b]
+        test_dataset = n[int(len(n) * .05) : int(len(n) * .95)]
+        test_datasets.append(test_dataset)
+
+        #train_dataset = list(set(n)-set(test_dataset))
+        #training_datasets.append(train_dataset)
+
+    for i, s in enumerate(splits):
+        print(i)
+        per = int(s*100)
+
+        if os.path.exists(f"SplitDatasets\\Dataset{per}"):
+            shutil.rmtree(f"SplitDatasets\\Dataset{per}")
+        
+        os.mkdir(f"SplitDatasets\\Dataset{per}")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\train")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\train\\images")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\test")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\test\\images")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\train\\labels")
+        os.mkdir(f"SplitDatasets\\Dataset{per}\\test\\labels")
+
+        #train_dataset = training_datasets[i]
+        test_dataset = test_datasets[i]
+        """
+        print("TRDS")
+        print(len(train_dataset))
+        for sample in train_dataset:
+            img_name, label_name = sample
+
+            img_path_src = os.path.join(path, "images", img_name)
+            label_path_src = os.path.join(path, "labels", label_name)
+
+            img_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\train\\images", img_name)
+            label_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\train\\labels", label_name)
+
+            shutil.copyfile(img_path_src, img_path_dst)
+            shutil.copyfile(label_path_src, label_path_dst)
+        """
+        print("TEDS")
+        print(len(test_dataset))
+        for sample in test_dataset:
+            img_name, label_name = sample
+
+            img_path_src = os.path.join(path, "images", img_name)
+            label_path_src = os.path.join(path, "labels", label_name)
+
+            img_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\test\\images", img_name)
+            label_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\test\\labels", label_name)
+
+            shutil.copyfile(img_path_src, img_path_dst)
+            shutil.copyfile(label_path_src, label_path_dst)
+
 
 class SolarPanelSoilingDataset(Dataset):
 
