@@ -2,8 +2,9 @@ from keras_segmentation.models.unet import vgg_unet
 from keras_segmentation.models.unet import resnet50_unet
 from keras_segmentation.models.segnet import resnet50_segnet
 from keras_segmentation.models.pspnet import pspnet
+from keras_segmentation.models.fcn import fcn_32
 import matplotlib.pyplot as plt
-from dataset import DynamicSolarPanelDustClassificationDataset
+from dataset import DynamicSolarPanelSoilingDataset
 from torch.utils.data import DataLoader, Dataset
 import numpy as np
 import tensorflow as tf
@@ -16,7 +17,7 @@ from PIL import Image
 import cv2
 import keras_segmentation
 
-vgg = vgg_unet(n_classes=7, input_height=224, input_width=224)
+fcn32 = fcn_32(7, input_height=224, input_width=224)
 resnetunet = resnet50_unet(7, 224, 224)
 resnetsegnet = resnet50_segnet(7, 224, 224)
 
@@ -35,9 +36,9 @@ class ClassifierDataset(Dataset):
         return self.seg_preds[idx], self.imgs[idx], self.pl[idx]
 
 def build_dataset(m):
-    train_dataset = DynamicSolarPanelDustClassificationDataset(imgs_path="C:\\Users\\Thomas\\OneDrive\\Apps\\Documents\\Visual studio code projects\\SolarPanelResearchProject\\DatasetTwo\\train\\Images", seg_labels_path="C:\\Users\\Thomas\\OneDrive\\Apps\\Documents\\Visual studio code projects\\SolarPanelResearchProject\\DatasetTwo\\train\\ProcessedLabels")
+    train_dataset = DynamicSolarPanelSoilingDataset(imgs_path="C:\\Users\\Thomas\\OneDrive\\Apps\\Documents\\Visual studio code projects\\SolarPanelResearchProject\\DatasetTwo\\train\\Images", seg_labels_path="C:\\Users\\Thomas\\OneDrive\\Apps\\Documents\\Visual studio code projects\\SolarPanelResearchProject\\DatasetTwo\\train\\ProcessedLabels")
     trainloader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=2)
-    test_dataset = DynamicSolarPanelDustClassificationDataset("C:\\Users\\Thomas\\OneDrive\\Apps\\Documents\\Visual studio code projects\\SolarPanelResearchProject\\DatasetTwo\\test\\Images", seg_labels_path="C:\\Users\\Thomas\\OneDrive\\Apps\\Documents\\Visual studio code projects\\SolarPanelResearchProject\\DatasetTwo\\test\\ProcessedLabels")
+    test_dataset = DynamicSolarPanelSoilingDataset("C:\\Users\\Thomas\\OneDrive\\Apps\\Documents\\Visual studio code projects\\SolarPanelResearchProject\\DatasetTwo\\test\\Images", seg_labels_path="C:\\Users\\Thomas\\OneDrive\\Apps\\Documents\\Visual studio code projects\\SolarPanelResearchProject\\DatasetTwo\\test\\ProcessedLabels")
     testloader = DataLoader(test_dataset, batch_size=16, shuffle=True, num_workers=2)
 
     cldstrain = ClassifierDataset()
@@ -82,13 +83,16 @@ def build_dataset(m):
 
 epochs = 100
 
-vgg.train(train_images="DatasetTwo\\train\\Images",train_annotations="DatasetTwo\\train\\ProcessedLabels",checkpoints_path="segmenters_checkpoints\\vgg_unet_1\\VGG", epochs=epochs)
+"""
+fcn32.train(train_images="DatasetTwo\\train\\Images",train_annotations="DatasetTwo\\train\\ProcessedLabels",checkpoints_path="segmenters_checkpoints\\fcn32\\FCN32", epochs=epochs)
 
 resnetunet.train(train_images="DatasetTwo\\train\\Images", train_annotations="DatasetTwo\\train\\ProcessedLabels", checkpoints_path="segmenters_checkpoints\\resnetunet2\\RESUNET", epochs=epochs)
 
 resnetsegnet.train(train_images="DatasetTwo\\train\\Images",
             train_annotations="DatasetTwo\\train\\ProcessedLabels",
             checkpoints_path="segmenters_checkpoints\\segunet1\\SEGUNET", epochs=epochs)
+"""
+
 
 
 def masking_function(img):
@@ -109,16 +113,16 @@ def put_pallete(img, path):
     filename = f"{path}.png"
     img.save(filename)
 
-#vgg.load_weights('segmenters_checkpoints\\vgg_unet_1\\VGG.32')
-#resnetunet.load_weights('segmenters_checkpoints\\resnetunet2\\RESUNET.35')
-#resnetsegnet.load_weights('segmenters_checkpoints\\segunet1\\SEGUNET.23')
+fcn32.load_weights('segmenters_checkpoints\\fcn32\\FCN32.10')
+resnetunet.load_weights('segmenters_checkpoints\\resnetunet2\\RESUNET.99')
+resnetsegnet.load_weights('segmenters_checkpoints\\segunet1\\SEGUNET.50')
 
-"""
+
 for i in range(4):
-    img = resnetunet.predict_segmentation(inp=f"test{i+1}.png", out_fname=f'out{i+1}.png')
+    img = resnetsegnet.predict_segmentation(inp=f"examples\\inputs\\test{i+1}.png", out_fname=f'out{i+1}.png')
     print(np.unique(img))
     put_pallete(img, f"out{i+1}")
-"""
+
 
 """
 if __name__ == '__main__':
