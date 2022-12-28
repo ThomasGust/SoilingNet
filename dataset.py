@@ -7,13 +7,15 @@ import numpy as np
 import shutil
 from sklearn.model_selection import train_test_split
 import random
+import tqdm
+import cv2
+import glob
+from albumentations import RandomRotate90, GridDistortion, HorizontalFlip, VerticalFlip, HueSaturationValue, GaussianBlur, Sharpen
 
-def prob_exec(prob):
-    if random.random() >= prob:
-        return True
-    else:
-        return False
-
+def load_data(path):
+     images = sorted(glob(os.path.join(path, "images/")))     
+     masks = sorted(glob(os.path.join(path, "masks/")))
+     return images, masks
 
 
 def tts(path, splits=[0.2, 0.5, 0.7]):
@@ -66,6 +68,79 @@ def tts(path, splits=[0.2, 0.5, 0.7]):
 
             shutil.copyfile(img_path_src, img_path_dst)
             shutil.copyfile(label_path_src, label_path_dst)
+
+def augment_data(images, masks, save_path, augment=True):
+    for x, y in tqdm(zip(images, masks), total=len(images)):
+        name = x.split("/")[-1].split(".")
+
+        image_name = name[0]
+        image_extn = name[1]
+
+        name = y.split("/")[-1].split(".")
+        mask_name = name[0]
+        mask_extn = name[1]
+
+        x = cv2.imread(x, cv2.IMREAD_COLOR)
+        y = cv2.imread(y, cv2.IMREAD_COLOR)
+
+        if augment == True:
+            aug = RandomRotate90(p=1.0)
+            augmented = aug(image=x, mask=y)
+            x2 = augmented['image']
+            y2 = augmented['mask']
+
+            aug = GridDistortion(p=1.0)
+            augmented = aug(image=x, mask=y)
+            x3 = augmented['image']
+            y3 = augmented['mask']
+
+            aug = HorizontalFlip(p=1.0)
+            augmented = aug(image=x, mask=y)
+            x4 = augmented['image']
+            y4 = augmented['mask']
+
+            aug = VerticalFlip(p=1.0)
+            augmented = aug(image=x, mask=y)
+            x5 = augmented['image']
+            y5 = augmented['mask']
+
+            aug = HueSaturationValue(p=1.0)
+            augmented = aug(image=x, mask=y)
+            x6 = augmented['image']
+            y6 = augmented['mask']
+
+            aug = GaussianBlur(p=1.0)
+            augmented = aug(image=x, mask=y)
+            x7 = augmented['image']
+            y7 = augmented['mask']
+
+            save_images = [x, x2, x3, x4, x5, x6, x7]
+            save_masks =  [y, y2, y3, y4, y5, y6, y7]
+
+        else:
+            save_images = [x]
+            save_masks = [y]
+
+        idx = 0
+        for i, m in zip(save_images, save_masks):
+            i = cv2.resize(i, (224,224))
+            m = cv2.resize(m, (224, 224))
+
+            if len(images) == 1:
+                tmp_img_name = f"{image_name}.{image_extn}"
+                tmp_mask_name = f"{mask_name}.{mask_extn}"
+
+            else:
+                tmp_img_name = f"{image_name}_{idx}.{image_extn}"
+                tmp_mask_name = f"{mask_name}_{idx}.{mask_extn}"
+
+            image_path = os.path.join(save_path, "images", tmp_img_name)
+            mask_path = os.path.join(save_path, "masks", tmp_mask_name)
+
+            cv2.imwrite(image_path, i)
+            cv2.imwrite(mask_path, m)
+
+            idx += 1
 
 
 class SolarPanelSoilingDataset(Dataset):
