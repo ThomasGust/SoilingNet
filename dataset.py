@@ -6,6 +6,14 @@ from skimage import io
 import numpy as np
 import shutil
 from sklearn.model_selection import train_test_split
+import random
+
+def prob_exec(prob):
+    if random.random() >= prob:
+        return True
+    else:
+        return False
+
 
 
 def tts(path, splits=[0.2, 0.5, 0.7]):
