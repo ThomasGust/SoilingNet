@@ -6,16 +6,15 @@ from skimage import io
 import numpy as np
 import shutil
 from sklearn.model_selection import train_test_split
-import random
-import tqdm
+from tqdm import tqdm
 import cv2
-import glob
-from albumentations import RandomRotate90, GridDistortion, HorizontalFlip, VerticalFlip, HueSaturationValue, GaussianBlur, Sharpen
+from glob import glob
+from albumentations import RandomRotate90, GridDistortion, HorizontalFlip, VerticalFlip, HueSaturationValue, GaussianBlur
 
 def load_data(path):
-     images = sorted(glob(os.path.join(path, "images/")))     
-     masks = sorted(glob(os.path.join(path, "masks/")))
-     return images, masks
+    images = os.listdir(os.path.join(path, "images"))
+    masks = os.listdir(os.path.join(path, "labels"))
+    return images, masks
 
 
 def tts(path, splits=[0.2, 0.5, 0.7]):
@@ -74,14 +73,14 @@ def augment_data(images, masks, save_path, augment=True):
         name = x.split("/")[-1].split(".")
 
         image_name = name[0]
-        image_extn = name[1]
+        image_extn = "png"
 
         name = y.split("/")[-1].split(".")
         mask_name = name[0]
-        mask_extn = name[1]
+        mask_extn = "png"
 
-        x = cv2.imread(x, cv2.IMREAD_COLOR)
-        y = cv2.imread(y, cv2.IMREAD_COLOR)
+        x = cv2.imread(os.path.join("Dataset", "images", x), cv2.IMREAD_COLOR)
+        y = cv2.imread(os.path.join("Dataset", "labels", y), cv2.IMREAD_COLOR)
 
         if augment == True:
             aug = RandomRotate90(p=1.0)
