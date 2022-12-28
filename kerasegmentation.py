@@ -94,6 +94,7 @@ def build_dataset(m):
 
 epochs = 100
 
+"""
 fcn32.train(train_images="DatasetTwo\\train\\Images",train_annotations="DatasetTwo\\train\\ProcessedLabels",checkpoints_path="segmenters_checkpoints\\fcn32\\FCN32", epochs=epochs)
 
 resnetunet.train(train_images="DatasetTwo\\train\\Images", train_annotations="DatasetTwo\\train\\ProcessedLabels", checkpoints_path="segmenters_checkpoints\\resnetunet2\\RESUNET", epochs=epochs)
@@ -101,6 +102,7 @@ resnetunet.train(train_images="DatasetTwo\\train\\Images", train_annotations="Da
 resnetsegnet.train(train_images="DatasetTwo\\train\\Images",
             train_annotations="DatasetTwo\\train\\ProcessedLabels",
             checkpoints_path="segmenters_checkpoints\\segunet1\\SEGUNET", epochs=epochs)
+"""
 
 def train_models(epochs=epochs, splits=[0.2, 0.5, 0.7]):
     for s in splits:
@@ -162,3 +164,6 @@ for i in range(4):
     print(np.unique(img))
     put_pallete(img, f"out{i+1}")
 """
+
+if __name__ == "__main__":
+    train_models()

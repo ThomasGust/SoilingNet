@@ -1,0 +1,1 @@
+{"model_class": "fcn_32", "n_classes": 7, "input_height": 224, "input_width": 224, "output_height": 256, "output_width": 256}
