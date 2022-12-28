@@ -12,6 +12,8 @@ import torchvision.transforms as transforms
 from imgaug import augmenters as iaa
 import keras_segmentation
 import os
+import shutil
+import keras
 
 import collections
 collections.Iterable = collections.abc.Iterable
@@ -104,6 +106,29 @@ resnetsegnet.train(train_images="DatasetTwo\\train\\Images",
             checkpoints_path="segmenters_checkpoints\\segunet1\\SEGUNET", epochs=epochs)
 """
 
+class KerasSegmentationGraphCallback(keras.callbacks.Callback):
+
+    def __init__(self, model_name):
+        super().__init__()
+        self.accuracies = []
+        self.losses = []
+        self.model_name = model_name
+
+    def on_train_end(self, logs=None):
+        keys = list(logs.keys())
+        print("Stop training; got log keys: {}".format(keys))
+
+    def on_epoch_end(self, logs=None):
+        logs = logs or {}
+        loss = logs.get("loss")
+        accuracy = logs.get("accuracy")
+        self.losses.append(loss)
+        self.accuracies.append(accuracy)
+        print(self.accuracies)
+        print(self.losses)
+
+
+
 def train_models(epochs=epochs, splits=[0.2, 0.5, 0.7]):
     for s in splits:
         per = int(s*100)
@@ -113,25 +138,25 @@ def train_models(epochs=epochs, splits=[0.2, 0.5, 0.7]):
         if not os.path.exists(f"segmenters_checkpoints\\fcn32_{per}"): 
             os.mkdir(f"segmenters_checkpoints\\fcn32_{per}")
         else:
-            os.rmdir(f"segmenters_checkpoints\\fcn32_{per}")
+            shutil.rmtree(f"segmenters_checkpoints\\fcn32_{per}")
+            os.mkdir(f"segmenters_checkpoints\\fcn32_{per}")
 
-        fcn32.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\fcn32_{per}\\FCN32", epochs=epochs)
+        fcn32.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\fcn32_{per}\\FCN32", epochs=epochs, cbs=[KerasSegmentationGraphCallback()])
 
         if not os.path.exists(f"segmenters_checkpoints\\unet_{per}"):
             os.mkdir(f"segmenters_checkpoints\\unet_{per}")
         else:
-            os.rmdir(f"segmenters_checkpoints\\unet_{per}")
+            shutil.rmtree(f"segmenters_checkpoints\\unet_{per}")
+            os.mkdir(f"segmenters_checkpoints\\unet_{per}")
 
-        resnetunet.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\unet_{per}\\UNET", epochs=epochs)
+        resnetunet.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\unet_{per}\\UNET", epochs=epochs, cbs=[KerasSegmentationGraphCallback()])
 
         if not os.path.exists(f"segmenters_checkpoints\\segnet_{per}"):
             os.mkdir(f"segmenters_checkpoints\\segnet_{per}")
         else:
-            os.rmdir(f"segmenters_checkpoints\\segnet_{per}")
-        resnetsegnet.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\segnet_{per}\\SEGNET", epochs=epochs)
-
-
-
+            shutil.rmtree(f"segmenters_checkpoints\\segnet_{per}")
+            os.mkdir(f"segmenters_checkpoints\\segnet_{per}")
+        resnetsegnet.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\segnet_{per}\\SEGNET", epochs=epochs, cbs=[KerasSegmentationGraphCallback()])
 
 
 
@@ -166,4 +191,4 @@ for i in range(4):
 """
 
 if __name__ == "__main__":
-    train_models()
+    train_models(epochs=1)
