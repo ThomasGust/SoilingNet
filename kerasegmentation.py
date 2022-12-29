@@ -16,15 +16,17 @@ import shutil
 import keras
 import matplotlib.pyplot as plt
 import pickle as pkl
+import random
+import cv2
 
 import collections
 collections.Iterable = collections.abc.Iterable
 
 
 
-fcn32 = fcn_32(7, input_height=224, input_width=224)
-resnetunet = resnet50_unet(7, 224, 224)
-resnetsegnet = resnet50_segnet(7, 224, 224)
+fcn32 = fcn_32(8, input_height=224, input_width=224)
+resnetunet = resnet50_unet(8, 224, 224)
+resnetsegnet = resnet50_segnet(8, 224, 224)
 
 
 def augmentation_stack():
@@ -127,7 +129,7 @@ class KerasSegmentationGraphCallback(keras.callbacks.Callback):
         plt.savefig(f'figures\\accuracies\\TrainingAccuracy{self.model_name}.png')
         plt.close()
 
-        plt.plot(self.epoch_range, self.accuracies, 'r', label=f'Loss {self.model_name}')
+        plt.plot(self.epoch_range, self.losses, 'r', label=f'Loss {self.model_name}')
         plt.title(f'Training Loss {self.model_name}')
 
         plt.xlabel("Epoch")
@@ -161,7 +163,7 @@ def train_models(epochs=epochs, splits=[0.2, 0.5, 0.7]):
     for s in splits:
         per = int(s*100)
 
-        path = os.path.join("SegmentationDatasets", f"Dataset{per}")
+        path = os.path.join("SplitDatasets", f"Dataset{per}")
 
         if not os.path.exists(f"segmenters_checkpoints\\fcn32_{per}"): 
             os.mkdir(f"segmenters_checkpoints\\fcn32_{per}")
@@ -206,17 +208,34 @@ def put_pallete(img, path):
     filename = f"{path}.png"
     img.save(filename)
 
+def random_colorize():
+    path = "Dataset\\labels"
+
+    names = os.listdir(path)
+
+    name = random.choice(names)
+
+    img = cv2.imread(os.path.join(path, name), cv2.IMREAD_GRAYSCALE)
+    print(np.unique(img))
+
+    put_pallete(img, "ColorizedLabelExample.png")
+
+
+random_colorize()
+
 """
-fcn32.load_weights('segmenters_checkpoints\\fcn32\\FCN32.10')
-resnetunet.load_weights('segmenters_checkpoints\\resnetunet2\\RESUNET.99')
-resnetsegnet.load_weights('segmenters_checkpoints\\segunet1\\SEGUNET.50')
+resnetunet.load_weights('segmenters_checkpoints\\unet_20\\UNET.99')
 
 
 for i in range(4):
-    img = resnetsegnet.predict_segmentation(inp=f"examples\\inputs\\test{i+1}.png", out_fname=f'out{i+1}.png')
+    img = resnetunet.predict_segmentation(inp=f"examples\\inputs\\test{i+1}.png", out_fname=f'out{i+1}.png')
+    print(img.shape)
+    print(type(img))
     print(np.unique(img))
     put_pallete(img, f"out{i+1}")
 """
 
+"""
 if __name__ == "__main__":
-    train_models(epochs=2)
+    train_models(epochs=100)
+"""

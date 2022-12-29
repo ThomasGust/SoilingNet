@@ -137,9 +137,26 @@ def augment_data(images, masks, save_path, augment=True):
             mask_path = os.path.join(save_path, "masks", tmp_mask_name)
 
             cv2.imwrite(image_path, i)
+            print("WROTE IMAGE")
             cv2.imwrite(mask_path, m)
 
             idx += 1
+
+def get_labels(n_classes):
+    labels = []
+    irradiances = []
+
+    file_names = os.listdir("ClassificationDataset")
+    
+    for name in file_names:
+        smooth_label = float(name.split("_L_")[1].split("_I_")[0])
+        hard_label = int(round(smooth_label*(n_classes-1)))
+        labels.append(hard_label)
+
+        irradiance = float(name.split("_I_")[1].split(".")[0])
+        irradiances.append(float(int(round(irradiance*(n_classes-1)))))
+
+    return labels, irradiances
 
 
 class SolarPanelSoilingDataset(Dataset):
@@ -201,7 +218,7 @@ class DynamicSolarPanelSoilingDataset(Dataset):
                 img = io.imread(os.path.join(dataset_path, name))
             else:
                 img = io.imread(os.path.join(dataset_path, name))
-            
+        
             self.imgs.append(img/255.0)
 
             smooth_label = float(name.split("_L_")[1].split("_I_")[0])

@@ -1,3 +1,3 @@
 from dataset import tts
 
-tts("Dataset")
+tts("AugmentedDataset")
