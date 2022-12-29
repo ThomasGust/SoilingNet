@@ -7,8 +7,9 @@ model_names = [("FCN32-20", "UNet-20", "SegNet-20"), ("FCN32-50", "UNet-50", "Se
 stats = "training_stats"
 clr_dict = {0:"r", 1:"g", 2:"b"}
 
+#TODO add functionality for iou metric when I add that to training loop
 def compile_graphs():
-    for name in model_names:
+    for ii, name in enumerate(model_names):
         red, green, blue = name
 
         names = [red, green, blue]
@@ -22,6 +23,7 @@ def compile_graphs():
                 losses = pkl.load(f)
             
             plt.plot(range(0, len(losses)), losses, clr_dict[i], label=f'Loss {n}')
+            plt.legend(loc='upper right')
             plt.title(f'Training Loss {n}')
 
             plt.xlabel("Epoch")
@@ -30,12 +32,44 @@ def compile_graphs():
             plt.close()
 
             plt.plot(range(0, len(accuracies)), accuracies, clr_dict[i], label=f'Accuracy {n}')
+            plt.legend(loc='lower right')
             plt.title(f'Training Accuracy {n}')
 
             plt.xlabel("Epoch")
             plt.ylabel("Accuracy")
             plt.savefig(f'figures\\accuracies\\TrainingAccuracy{n}.png')
             plt.close()
+        
+
+
+        for i, n in enumerate(names):
+            with open(os.path.join(stats, n, "accuracies.pkl"), "rb") as f:
+                accuracies = pkl.load(f)
+            
+            plt.plot(range(0, len(accuracies)), accuracies, clr_dict[i], label=f"Accuracy {n}")
+        
+        plt.legend(loc='lower right')
+        plt.xlabel("Epoch")
+        plt.ylabel("Accuracy")
+
+        plt.savefig(f"figures\\accuracies\\TrainingAccuracyCombined{ii}.png")
+        plt.close()
+
+        for i, n in enumerate(names):
+            with open(os.path.join(stats, n, "losses.pkl"), "rb") as f:
+                losses = pkl.load(f)
+            
+            plt.plot(range(0, len(losses)), losses, clr_dict[i], label=f"Loss {n}")
+        
+        plt.legend(loc='upper right')
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+
+        plt.savefig(f"figures\\losses\\TrainingLossCombined{ii}.png")
+        plt.close()
+
+        
+
     
 if __name__ == "__main__":
     compile_graphs()
