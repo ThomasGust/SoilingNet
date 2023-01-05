@@ -13,6 +13,6 @@ SoilingNet consists of 2 sub-systems, the first is a semantic segmentation model
 
 Solar Panel Image          |  Solar Panel Image| Solar Panel Image| Solar Panel Image 
 :-------------------------:|:-------------------------:|:-----------------:|:--------------------:
-![in1](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/IMG0.png)   | ![pred1](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out1.png) |![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test2.png)| ![pred2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out2.png) 
+![in1](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG0.png)   | ![pred1](https://github.com/ThomasGust/SoilingNet/blob/main/exampleoutputs/out1.png) |![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test2.png)| ![pred2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out2.png) 
 |||
 ![in3](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test3.png)| ![pred3](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out3.png) | ![in4](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test4.png) | ![pred4](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out4.png)
