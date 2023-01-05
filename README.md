@@ -11,8 +11,11 @@ We also introduced a subset of the DeepSolarEye dataset with hand labeled semant
 
 SoilingNet consists of 2 sub-systems, the first is a semantic segmentation model, which we are able to train in a fully supervised manner, that predicts soiling type and distribution from images of a solar panel. The second system is a classification model that produces a prediction for soiling impact severity.
 
-Solar Panel Image          |  Segmentation Prediction | Solar Panel Image | Segmentation Prediction
-:-------------------------:|:-------------------------:|:-----------------:|:--------------------:
-![in1](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test1.png)   | ![pred1](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out1.png) |![in2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test2.png)| ![pred2](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out2.png) 
-|||
-![in3](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test3.png)| ![pred3](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out3.png) | ![in4](https://github.com/ThomasGust/SoilingNet/blob/main/examples/inputs/test4.png) | ![pred4](https://github.com/ThomasGust/SoilingNet/blob/main/examples/outputs/out4.png)
+
+![in1](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG0.png)![in2](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG1.png)![in3](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG2.png)![in4](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG3.png)![in5](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG4.png)
+
+![in1](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/predictions/OUT0.png)![in2](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/predictions/OUT1.png)![in3](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/predictions/OUT2.png)![in4](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/predictions/OUT3.png)![in5](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/predictions/OUT4.png)
+
+![in1](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG5.png)![in2](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG6.png)![in3](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG7.png)![in4](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG8.png)![in5](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/images/IMG9.png)
+
+![in1](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/predictions/OUT5.png)![in2](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/predictions/OUT6.png)![in3](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/predictions/OUT7.png)![in4](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/predictions/OUT8.png)![in5](https://github.com/ThomasGust/SoilingNet/blob/main/figures/examples/predictions/OUT9.png)
