@@ -12,7 +12,6 @@ import numpy as np
 from torch.utils.data import WeightedRandomSampler
 import matplotlib.pyplot as plt
 from classifier_architectures import *
-from segmentation_model_architectures import *
 import pickle as pkl
 import os
 import shutil
@@ -57,12 +56,9 @@ class ClassifierTrainingConfig:
         
         
 def get_training_configs():
-    #models = [(ShortConv, 'ShortConv'), (FeedForwardClassifier, 'FeedForwardClassifier'), (EfficientNet, 'ENet')]
     models = [(ShortConv, 'ClassifierModel')]
     num_classes = [4, 8, 12, 16]
     splits = [0.0]
-
-    #splits = [0.5]
     configs = []
 
     for model in models:
@@ -85,7 +81,6 @@ def training_loop(config):
         os.mkdir(save_path)
 
     model = config.model(NUM_CLASSES).to(device)
-    #model = config.model.to(device)
 
     ds = DynamicSolarPanelSoilingDataset(NUM_CLASSES, "PanelImages", segmentation_model=None, every=5, format='PNG', transform=transforms.ToTensor())
 
@@ -242,10 +237,6 @@ def training_loop(config):
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 if __name__ == "__main__":
-    #models = [ResNet50(4, 4), ResNet50(4, 8), ResNet50(4, 12), ResNet50(4, 16)]
-
-    #for model in models:
-    #    print(count_parameters(model))
     configs = get_training_configs()
 
     for config in configs:

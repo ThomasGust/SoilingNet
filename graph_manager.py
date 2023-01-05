@@ -3,7 +3,6 @@ import pickle as pkl
 import os
 
 
-#TODO add functionality for iou metric when I add that to training loop
 def compile_graphs_segmentation():
     model_names = [("FCN32-20", "UNet-20", "SegNet-20"), ("FCN32-50", "UNet-50", "SegNet-50"), ("FCN32-70", "UNet-70", "SegNet-70")]
     stats = "training_stats"
