@@ -112,12 +112,15 @@ resnetsegnet.train(train_images="DatasetTwo\\train\\Images",
 
 class KerasSegmentationGraphCallback(keras.callbacks.Callback):
 
-    def __init__(self, epochs, model_name):
+    def __init__(self, epochs, model_name, mnum):
         super().__init__()
         self.accuracies = []
         self.losses = []
+        self.ious = []
         self.model_name = model_name
         self.epoch_range = range(epochs)
+        self.m_num = mnum
+        print(self.m_num)
 
     def on_train_end(self, logs=None):
         keys = list(logs.keys())
@@ -146,21 +149,24 @@ class KerasSegmentationGraphCallback(keras.callbacks.Callback):
         with open(os.path.join("training_stats", self.model_name, "losses.pkl"), "wb") as f:
             pkl.dump(self.losses, f)
 
+        with open(os.path.join("training_stats", self.model_name, "ious.pkl"), "wb") as f:
+            pkl.dump(self.ious, f)
 
 
-    def on_epoch_end(self, epoch, logs=None):
+
+    def on_epoch_end(self, epochs, logs=None):
         logs = logs or {}
         loss = logs.get("loss")
         accuracy = logs.get("accuracy")
+        iou = logs.get(f'one_hot_mean_io_u{self.m_num}')
         self.losses.append(loss)
         self.accuracies.append(accuracy)
-        print(self.accuracies)
-        print(self.losses)
+        self.ious.append(iou)
 
 
 
 def train_models(epochs=epochs, splits=[0.2, 0.5, 0.7]):
-    for s in splits:
+    for i, s in enumerate(splits):
         per = int(s*100)
 
         path = os.path.join("SplitDatasets", f"Dataset{per}")
@@ -171,22 +177,24 @@ def train_models(epochs=epochs, splits=[0.2, 0.5, 0.7]):
             shutil.rmtree(f"segmenters_checkpoints\\fcn32_{per}")
             os.mkdir(f"segmenters_checkpoints\\fcn32_{per}")
 
-        fcn32.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\fcn32_{per}\\FCN32", epochs=epochs, cbs=[KerasSegmentationGraphCallback(epochs, f"FCN32-{per}")])
-
+        if i == 0:
+            fcn32.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\fcn32_{per}\\FCN32", epochs=epochs, cbs=[KerasSegmentationGraphCallback(epochs, f"FCN32-{per}", mnum="")])
+        else:
+            fcn32.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\fcn32_{per}\\FCN32", epochs=epochs, cbs=[KerasSegmentationGraphCallback(epochs, f"FCN32-{per}", mnum=f"_{(3*i)}")])
         if not os.path.exists(f"segmenters_checkpoints\\unet_{per}"):
             os.mkdir(f"segmenters_checkpoints\\unet_{per}")
         else:
             shutil.rmtree(f"segmenters_checkpoints\\unet_{per}")
             os.mkdir(f"segmenters_checkpoints\\unet_{per}")
 
-        resnetunet.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\unet_{per}\\UNET", epochs=epochs, cbs=[KerasSegmentationGraphCallback(epochs, f"UNet-{per}")])
+        resnetunet.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\unet_{per}\\UNET", epochs=epochs, cbs=[KerasSegmentationGraphCallback(epochs, f"UNet-{per}", mnum=f"_{(3*i)+1}")])
 
         if not os.path.exists(f"segmenters_checkpoints\\segnet_{per}"):
             os.mkdir(f"segmenters_checkpoints\\segnet_{per}")
         else:
             shutil.rmtree(f"segmenters_checkpoints\\segnet_{per}")
             os.mkdir(f"segmenters_checkpoints\\segnet_{per}")
-        resnetsegnet.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\segnet_{per}\\SEGNET", epochs=epochs, cbs=[KerasSegmentationGraphCallback(epochs, f"SegNet-{per}")])
+        resnetsegnet.train(train_images=os.path.join(path, "train", "images"), train_annotations=os.path.join(path, "train", "labels"), checkpoints_path=f"segmenters_checkpoints\\segnet_{per}\\SEGNET", epochs=epochs, cbs=[KerasSegmentationGraphCallback(epochs, f"SegNet-{per}", mnum=f"_{(3*i)+2}")], ignore_zero_class=False)
 
 
 
@@ -204,6 +212,7 @@ def put_pallete(img, path):
                     0,   0, 255,
                     255,255,0,
                     0,255,255,
+                    255,0,255,
                     255,255,255]) 
     filename = f"{path}.png"
     img.save(filename)
@@ -221,7 +230,7 @@ def random_colorize():
     put_pallete(img, "ColorizedLabelExample.png")
 
 
-random_colorize()
+#random_colorize()
 
 """
 resnetunet.load_weights('segmenters_checkpoints\\unet_20\\UNET.99')
@@ -235,7 +244,7 @@ for i in range(4):
     put_pallete(img, f"out{i+1}")
 """
 
-"""
+
 if __name__ == "__main__":
     train_models(epochs=100)
-"""
+

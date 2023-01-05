@@ -1,10 +1,13 @@
 import numpy as np
-from kerasegmentation import fcn32, put_pallete
+from kerasegmentation import fcn32, put_pallete, resnetsegnet, resnetunet
+import matplotlib.pyplot as plt
 
-fcn32.load_weights('segmenters_checkpoints\\fcn32_20\\FCN32.0')
+resnetsegnet.load_weights('segmenters_checkpoints\\segnet_20\\SEGNET.50')
 
 
 for i in range(4):
-    img = fcn32.predict_segmentation(inp=f"examples\\inputs\\test{i+1}.png", out_fname=f'out{i+1}.png')
-    print(np.unique(img))
+    img = resnetsegnet.predict_segmentation(inp=f"examples\\inputs\\test{i+1}.png", out_fname=f'out{i+1}.png')
+    plt.imshow(img)
+    plt.show()
+    #unique, counts = np.unique(img, return_counts=True)
     put_pallete(img, f"out{i+1}")

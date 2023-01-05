@@ -1,7 +1,6 @@
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.transforms as transforms
-import torchvision
 import torch
 from torch.utils.data import DataLoader
 from dataset import DynamicSolarPanelSoilingDataset
@@ -16,6 +15,7 @@ from classifier_architectures import *
 from segmentation_model_architectures import *
 import pickle as pkl
 import os
+import shutil
 
 
 device = torch.device('cuda:0')
@@ -34,8 +34,8 @@ def get_sampler(dataset):
         class_weight = class_weights[label]
         sample_weights[idx] = class_weight
     
-    sample_weights[0] *= 3
-    sample_weights[1] *= 3
+    sample_weights[0] *= 1.5
+    sample_weights[1] *= 1.5
     
     sampler = WeightedRandomSampler(sample_weights, num_samples=len(sample_weights), replacement=True)
 
@@ -43,23 +43,26 @@ def get_sampler(dataset):
 
 class ClassifierTrainingConfig:
 
-    def __init__(self, model, name, output_dimensions, train_split, batch_size=64, learning_rate=(1e-2)*7):
+    def __init__(self, model, name, output_dimensions, train_split, num_epochs=100, batch_size=64, learning_rate=(1e-4)):
         self.batch_size = batch_size
         self.lr = learning_rate
+        self.num_epochs = num_epochs
         self.nc = output_dimensions
 
         print(train_split)
         self.model = model
-        self.path = f"classifier_checkpoints\\{name}_{self.nc}_{int(round(train_split*10))}"        
+        self.path = f"classifier_checkpoints\\{name}_{self.nc}_{int(round(train_split*10))}"
+        self.name = f"{name}_{self.nc}_{int(round(train_split*10))}"
         self.train_split = train_split
         
         
 def get_training_configs():
-    models = [(ShortConv, 'ShortConv'), (FeedForwardClassifier, 'FeedForwardClassifier'), (EfficientNet, 'ENet')]
+    #models = [(ShortConv, 'ShortConv'), (FeedForwardClassifier, 'FeedForwardClassifier'), (EfficientNet, 'ENet')]
+    models = [(ShortConv, 'ClassifierModel')]
     num_classes = [4, 8, 12, 16]
-    #splits = [0.3, 0.5, 0.7]
+    splits = [0.0]
 
-    splits = [0.5]
+    #splits = [0.5]
     configs = []
 
     for model in models:
@@ -73,16 +76,18 @@ def get_training_configs():
 
 def training_loop(config):
     NUM_CLASSES = config.nc
-    BATCH_SIZE = 64
+    BATCH_SIZE = config.batch_size
     LEARNING_RATE = config.lr
-    NUM_EPOCHS = 50
+    NUM_EPOCHS = config.num_epochs
     save_path = config.path
 
     if not os.path.exists(save_path):
         os.mkdir(save_path)
 
     model = config.model(NUM_CLASSES).to(device)
-    ds = DynamicSolarPanelSoilingDataset(NUM_CLASSES, "Solar_Panel_Soiling_Image_dataset\\PanelImages", every=50, format='PNG', transform=transforms.ToTensor())
+    #model = config.model.to(device)
+
+    ds = DynamicSolarPanelSoilingDataset(NUM_CLASSES, "PanelImages", segmentation_model=None, every=5, format='PNG', transform=transforms.ToTensor())
 
     train_size = int(config.train_split * len(ds))
     test_size = len(ds) - train_size
@@ -106,7 +111,7 @@ def training_loop(config):
 
     criterion = nn.CrossEntropyLoss()
     accuracy = torchmetrics.Accuracy().to(device)
-    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     l = lambda epoch: 0.985 ** epoch
     scheduler = optim.lr_scheduler.LambdaLR(optimizer, l)
@@ -145,8 +150,9 @@ def training_loop(config):
 
         saved = True
 
-        if epoch % 5 == 0 or epoch+1==NUM_EPOCHS: 
-            torch.save(model, f"{save_path}\\MODEL{epoch+1}.pt")
+        #if epoch % 5 == 0 or epoch+1==NUM_EPOCHS: 
+            #torch.save(model, f"{save_path}\\MODEL{epoch+1}.pt")
+        torch.save(model, f"{save_path}\\MODEL{epoch}.pt")
         
         et = time.time()
 
@@ -158,6 +164,7 @@ def training_loop(config):
         
         print(f"Epoch [{epoch+1}/{NUM_EPOCHS}], Loss [{e_loss}], Accuracy [{e_acc}], Saved [{str(saved)}], Time [{hours}:{minutes}:{seconds}]")
     
+
     hist = []
     hist.append(loss_hist)
     hist.append(acc_hist)
@@ -182,53 +189,66 @@ def training_loop(config):
     plt.savefig(f"{save_path}\\ACCURACY.png")
     plt.close()
 
+    if config.train_split != 0:
+        with torch.no_grad():
+            n_correct = 0
+            n_samples = 0
+            n_class_correct = [0 for i in range(NUM_CLASSES)]
+            n_class_samples = [0 for i in range(NUM_CLASSES)]
 
-    with torch.no_grad():
-        n_correct = 0
-        n_samples = 0
-        n_class_correct = [0 for i in range(NUM_CLASSES)]
-        n_class_samples = [0 for i in range(NUM_CLASSES)]
+            for images, labels, irradiances in testing_dataloader:
+                images = images.to(device)
+                labels = labels.to(device)
+                irradiances = irradiances.to(device)
+                preds = model(images, irradiances)
 
-        for images, labels, irradiances in testing_dataloader:
-            images = images.to(device)
-            labels = labels.to(device)
-            irradiances = irradiances.to(device)
-            preds = model(images, irradiances)
+                _, predicted = torch.max(preds, 1)
+                n_samples += labels.size(0)
+                n_correct += (predicted == labels).sum().item()
 
-            _, predicted = torch.max(preds, 1)
-            n_samples += labels.size(0)
-            n_correct += (predicted == labels).sum().item()
+                for i in range(BATCH_SIZE):
+                    try:
+                        label = labels[i]
+                        pred = predicted[i]
+                        if (label == pred):
+                            n_class_correct[label] += 1
+                        n_class_samples[label] += 1
+                    except IndexError as e:
+                        pass
+                
+            acc = 100 * n_correct / n_samples
+            print(f'Network Accuracy: {acc:.4f}%')
 
-            for i in range(BATCH_SIZE):
-                try:
-                    label = labels[i]
-                    pred = predicted[i]
-                    if (label == pred):
-                        n_class_correct[label] += 1
-                    n_class_samples[label] += 1
-                except IndexError as e:
-                    pass
-            
-        acc = 100 * n_correct / n_samples
-        print(f'Network Accuracy: {acc:.4f}%')
+            test_accuracies = []
+            for i in range(NUM_CLASSES):
+                acc = 100 * n_class_correct[i] / n_class_samples[i]
+                test_accuracies.append(acc)
+                print(f'Accuracy of {[i]}:{acc:.4f}%')
+        
+        hist.append(test_accuracies)
+    else:
+        hist.append([])
 
-        test_accuracies = []
-        for i in range(NUM_CLASSES):
-            acc = 100 * n_class_correct[i] / n_class_samples[i]
-            test_accuracies.append(acc)
-            print(f'Accuracy of {[i]}:{acc:.4f}%')
-    
-    hist.append(test_accuracies)
-    time.sleep(300)
+    hist_path = os.path.join("training_stats", config.name)
 
-
-    with open(f"{save_path}\\hist.pkl", "wb") as f:
+    if not os.path.exists(hist_path):
+        os.mkdir(hist_path)
+    else:
+        shutil.rmtree(hist_path)
+        os.mkdir(hist_path)
+    with open(f"{hist_path}\\hist.pkl", "wb") as f:
         pkl.dump(hist, f)
 
-
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 if __name__ == "__main__":
+    #models = [ResNet50(4, 4), ResNet50(4, 8), ResNet50(4, 12), ResNet50(4, 16)]
+
+    #for model in models:
+    #    print(count_parameters(model))
     configs = get_training_configs()
-    
-    for c in configs:
-        training_loop(c)
+
+    for config in configs:
+        training_loop(config)
+
         

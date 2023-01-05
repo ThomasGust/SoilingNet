@@ -10,6 +10,8 @@ from tqdm import tqdm
 import cv2
 from glob import glob
 from albumentations import RandomRotate90, GridDistortion, HorizontalFlip, VerticalFlip, HueSaturationValue, GaussianBlur
+import matplotlib.pyplot as plt
+from kerasegmentation import resnetunet, resnetsegnet, fcn32
 
 def load_data(path):
     images = os.listdir(os.path.join(path, "images"))
@@ -53,8 +55,14 @@ def tts(path, splits=[0.2, 0.5, 0.7]):
             img_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\train\\images", img_name)
             label_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\train\\labels", label_name)
 
-            shutil.copyfile(img_path_src, img_path_dst)
-            shutil.copyfile(label_path_src, label_path_dst)
+            img_img = cv2.imread(img_path_src)
+            img_label = cv2.imread(label_path_src, cv2.IMREAD_UNCHANGED)
+
+            cv2.imwrite(img_path_dst, img_img)
+            cv2.imwrite(label_path_dst, img_label)
+            print(np.unique(img_label))
+            #shutil.copyfile(img_path_src, img_path_dst)
+            #shutil.copyfile(label_path_src, label_path_dst)
         
         for sample in test_dataset:
             img_name, label_name = sample
@@ -65,8 +73,17 @@ def tts(path, splits=[0.2, 0.5, 0.7]):
             img_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\test\\images", img_name)
             label_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\test\\labels", label_name)
 
-            shutil.copyfile(img_path_src, img_path_dst)
-            shutil.copyfile(label_path_src, label_path_dst)
+            #shutil.copyfile(img_path_src, img_path_dst)
+            #shutil.copyfile(label_path_src, label_path_dst)
+
+            img_img = cv2.imread(img_path_src)
+            img_label = cv2.imread(label_path_src, cv2.IMREAD_UNCHANGED)
+            print(np.unique(img_label))
+            #plt.imshow(np.moveaxis(img_label, 2, 0)[0])
+            #plt.show()
+
+            cv2.imwrite(img_path_dst, img_img)
+            cv2.imwrite(label_path_dst, img_label)
 
 def augment_data(images, masks, save_path, augment=True):
     for x, y in tqdm(zip(images, masks), total=len(images)):
@@ -80,7 +97,7 @@ def augment_data(images, masks, save_path, augment=True):
         mask_extn = "png"
 
         x = cv2.imread(os.path.join("Dataset", "images", x), cv2.IMREAD_COLOR)
-        y = cv2.imread(os.path.join("Dataset", "labels", y), cv2.IMREAD_COLOR)
+        y = cv2.imread(os.path.join("Dataset", "labels", y), cv2.IMREAD_UNCHANGED)
 
         if augment == True:
             aug = RandomRotate90(p=1.0)
@@ -103,18 +120,13 @@ def augment_data(images, masks, save_path, augment=True):
             x5 = augmented['image']
             y5 = augmented['mask']
 
-            aug = HueSaturationValue(p=1.0)
-            augmented = aug(image=x, mask=y)
-            x6 = augmented['image']
-            y6 = augmented['mask']
-
             aug = GaussianBlur(p=1.0)
             augmented = aug(image=x, mask=y)
             x7 = augmented['image']
-            y7 = augmented['mask']
+            y7 = y
 
-            save_images = [x, x2, x3, x4, x5, x6, x7]
-            save_masks =  [y, y2, y3, y4, y5, y6, y7]
+            save_images = [x, x2, x3, x4, x5, x7]
+            save_masks =  [y, y2, y3, y4, y5, y7]
 
         else:
             save_images = [x]
@@ -122,8 +134,13 @@ def augment_data(images, masks, save_path, augment=True):
 
         idx = 0
         for i, m in zip(save_images, save_masks):
-            i = cv2.resize(i, (224,224))
-            m = cv2.resize(m, (224, 224))
+            mask = np.moveaxis(m, 2, 0)
+            mask = mask[0]
+            print(np.unique(mask))
+            #plt.imshow(mask)
+            #plt.show()
+            #i = cv2.resize(i, (224,224))
+            #m = cv2.resize(m, (224, 224))
 
             if len(images) == 1:
                 tmp_img_name = f"{image_name}.{image_extn}"
@@ -134,7 +151,7 @@ def augment_data(images, masks, save_path, augment=True):
                 tmp_mask_name = f"{mask_name}_{idx}.{mask_extn}"
 
             image_path = os.path.join(save_path, "images", tmp_img_name)
-            mask_path = os.path.join(save_path, "masks", tmp_mask_name)
+            mask_path = os.path.join(save_path, "labels", tmp_mask_name)
 
             cv2.imwrite(image_path, i)
             print("WROTE IMAGE")
@@ -200,10 +217,90 @@ class SolarPanelSoilingDataset(Dataset):
 
 class DynamicSolarPanelSoilingDataset(Dataset):
 
-    def __init__(self, n_classes, dataset_path, every=10, format='PNG', transform=None):
+    def __init__(self, n_classes, dataset_path, segmentation_model, every=10, format='PNG', transform=None):
         self.n_classes = n_classes
 
         self.imgs = []
+        self.masks = []
+        self.labels = []
+        self.irradiances = []
+        resnetsegnet.load_weights("segmenters_checkpoints\\segnet_20\\SEGNET.99")
+
+        self.transform = transform
+
+        self.names = os.listdir(dataset_path)[::every]
+
+        """
+        for i, name in enumerate(os.listdir("MASKDIR")[::every]):
+            img = np.load(os.path.join("MASKDIR", f"{name}"))
+            #print(np.shape(img))s
+            img = np.resize(img, (1, 192, 192))
+            #print(np.shape(img))
+            self.masks.append(img)
+
+            if i % 1000 == 0:
+                print(f"Loaded mask {i}")
+        """
+
+        for i, name in enumerate(self.names):
+            if format == 'PNG':
+                img = io.imread(os.path.join(dataset_path, name))
+            else:
+                img = io.imread(os.path.join(dataset_path, name))
+
+            self.img = np.moveaxis(cv2.resize(img, (224, 224)), 2, 0)
+            #print(np.shape(self.img))
+            self.imgs.append(img/255.0)
+
+            smooth_label = float(name.split("_L_")[1].split("_I_")[0])
+            hard_label = int(round(smooth_label*(self.n_classes-1)))
+
+            irradiance = float(name.split("_I_")[1].split(".")[0])
+            self.irradiances.append(float(int(round(irradiance*(self.n_classes-1)))))
+
+            self.labels.append(hard_label)
+
+            mask = resnetsegnet.predict_segmentation(os.path.join(dataset_path, name))
+            self.masks.append(mask)
+
+            if i % 1000 == 0:
+                print(f"Loaded sample {i}")
+        
+        print("DATASET LOADED")
+    
+    def __len__(self):
+        return len(self.imgs)
+    
+    def __getitem__(self, idx):
+        img = self.imgs[idx]
+        label = self.labels[idx]
+        irradiance = self.irradiances[idx]
+
+        if self.transform:
+            img = self.transform(img)
+
+
+        img = np.concatenate((img, self.masks[idx]), axis=0)
+        img = torch.tensor(img).float()
+        
+        label = torch.tensor(label)
+        irradiance = torch.tensor(irradiance)
+
+        return img, label, irradiance
+    
+    def save_images(self):
+        os.mkdir("IMGDIR")
+        
+        for i, img in enumerate(self.imgs):
+            cv2.imwrite(f"IMGDIR\\IMG{i}.png", img)
+
+class DynamicSolarPanelSoilingDatasetMask(Dataset):
+
+    def __init__(self, n_classes, dataset_path, segmentation_model, every=10, format='PNG', transform=None):
+        self.n_classes = n_classes
+
+        self.imgs = []
+        self.masks = []
         self.labels = []
         self.irradiances = []
 
@@ -214,11 +311,11 @@ class DynamicSolarPanelSoilingDataset(Dataset):
         print(len(self.names))
         for i, name in enumerate(self.names):
             if format == 'PNG':
-            #img = io.imread(os.path.join(dataset_path, name), plugin='matplotlib')
                 img = io.imread(os.path.join(dataset_path, name))
             else:
                 img = io.imread(os.path.join(dataset_path, name))
-        
+
+            self.img = cv2.resize(img, (224, 224))
             self.imgs.append(img/255.0)
 
             smooth_label = float(name.split("_L_")[1].split("_I_")[0])
@@ -231,6 +328,13 @@ class DynamicSolarPanelSoilingDataset(Dataset):
 
             if i % 1000 == 0:
                 print(f"Loaded sample {i}")
+        
+        for i, name in enumerate(os.listdir("MASKDIR")[::every]):
+            self.masks.append(np.load(os.path.join("MASKDIR", f"{name}")))
+
+            if i % 1000 == 0:
+                print(f"Loaded mask {i}")
+        
         print("DATASET LOADED")
     
     def __len__(self):
@@ -244,11 +348,18 @@ class DynamicSolarPanelSoilingDataset(Dataset):
         if self.transform:
             img = self.transform(img)
         img = img.float()
+        img = np.concatenate((img, self.masks[idx]), axis=0)
         
         label = torch.tensor(label)
         irradiance = torch.tensor(irradiance)
 
-        return img, label, irradiance
+        return img, label, irradiance, torch.tensor(self.masks[idx])
+    
+    def save_images(self):
+        os.mkdir("IMGDIR")
+        
+        for i, img in enumerate(self.imgs):
+            cv2.imwrite(f"IMGDIR\\IMG{i}.png", img)
 
 
 class PartDynamicSolarPanelSoilingDataset(Dataset):
