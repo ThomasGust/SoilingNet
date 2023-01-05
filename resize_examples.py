@@ -6,7 +6,7 @@ def resize_examples():
 
     for n in os.listdir(path):
         img = cv2.imread(os.path.join(path, n))
-        img = cv2.resize(img, (1024, 1024), interpolation=cv2.INTER_NEAREST)
+        img = cv2.resize(img, (112, 112), interpolation=cv2.INTER_NEAREST)
         cv2.imwrite(os.path.join(path, n), img)
 
 if __name__ == "__main__":
