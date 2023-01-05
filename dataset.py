@@ -60,9 +60,6 @@ def tts(path, splits=[0.2, 0.5, 0.7]):
 
             cv2.imwrite(img_path_dst, img_img)
             cv2.imwrite(label_path_dst, img_label)
-            print(np.unique(img_label))
-            #shutil.copyfile(img_path_src, img_path_dst)
-            #shutil.copyfile(label_path_src, label_path_dst)
         
         for sample in test_dataset:
             img_name, label_name = sample
@@ -73,14 +70,9 @@ def tts(path, splits=[0.2, 0.5, 0.7]):
             img_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\test\\images", img_name)
             label_path_dst = os.path.join(f"SplitDatasets\\Dataset{per}\\test\\labels", label_name)
 
-            #shutil.copyfile(img_path_src, img_path_dst)
-            #shutil.copyfile(label_path_src, label_path_dst)
-
             img_img = cv2.imread(img_path_src)
             img_label = cv2.imread(label_path_src, cv2.IMREAD_UNCHANGED)
             print(np.unique(img_label))
-            #plt.imshow(np.moveaxis(img_label, 2, 0)[0])
-            #plt.show()
 
             cv2.imwrite(img_path_dst, img_img)
             cv2.imwrite(label_path_dst, img_label)
