@@ -6,13 +6,25 @@ import pickle as pkl
 import torch
 import torchmetrics
 from torch.utils.data import DataLoader
-from dataset import DynamicSolarPanelSoilingDataset
 from torchvision import transforms
-from kerasegmentation import resnetsegnet, resnetunet, fcn32
+from models import resnetsegnet, resnetunet, fcn32
 from sklearn.model_selection import train_test_split
 import shutil
 import random
 from dataset import load_data, augment_data
+
+def get_labels(n_classes, every):
+    labels = []
+
+
+    file_names = os.listdir("PanelImages")
+    
+    for name in file_names:
+        smooth_label = float(name.split("_L_")[1].split("_I_")[0])
+        hard_label = int(round(smooth_label*(n_classes-1)))
+        labels.append(hard_label)
+
+    return labels[::every]
 
 def get_confusion_matrix(predictions, labels, per=True):
     K = len(np.unique(labels))
@@ -138,6 +150,7 @@ def compile_graphs_segmentation():
         plt.savefig(f"figures\\accuracies\\TrainingJaccardIndexCombined{ii}.png")
         plt.close()
 
+
         
 def compile_graphs_classification():
 
@@ -225,85 +238,6 @@ def compile_graphs_classification():
 
         plt.savefig(f"figures\\classification_accuracies\\CombinedClassifierTrainingAccuracy{i}.png")
         plt.close()
-
-def get_labels(n_classes, every):
-    labels = []
-
-
-    file_names = os.listdir("PanelImages")
-    
-    for name in file_names:
-        smooth_label = float(name.split("_L_")[1].split("_I_")[0])
-        hard_label = int(round(smooth_label*(n_classes-1)))
-        labels.append(hard_label)
-
-    return labels[::every]
-
-def build_confusion_matrix(c, s, ds, every, device):
-    model = torch.load(f'classifier_checkpoints\\ClassifierModel_{c}_{s}\\MODEL99.pt').to(device)
-
-    dataloader = DataLoader(ds, 64)
-
-    predictions = []
-    _predictions = []
-    labels = get_labels(c, every)
-
-    with torch.no_grad():
-        for i, (img, true, irradiance) in enumerate(dataloader):
-            img = img.to(device)
-            irradiance = irradiance.to(device)
-
-            preds = model(img, irradiance)
-            _preds = torch.softmax(preds, dim=1)
-            preds = torch.argmax(_preds, dim=1)
-
-            preds = preds.cpu().tolist()
-
-            _preds = _preds.cpu().tolist()
-            for p in _preds:
-                _predictions.append(p)
-            for p in preds:
-                predictions.append(p)
-
-
-
-    predictions = np.array(predictions)
-    labels = np.array(labels)
-    _predictions = np.array(_predictions)
-
-    top_one_accuracy = torchmetrics.Accuracy(num_classes=c)(torch.tensor(predictions), torch.tensor(labels))
-    top_two_accuracy = torchmetrics.Accuracy(num_classes=c, top_k=2)(torch.tensor(_predictions), torch.tensor(labels))
-
-    print(top_one_accuracy)
-    print(top_two_accuracy)
-
-    cf = get_confusion_matrix(predictions, labels, per=True)
-    plot_confusion_matrix(cf, c, s)
-
-def generate_configs():
-    cs = [4, 8, 12, 16]
-    ss = [0]
-
-    configs = []
-
-    for c in cs:
-        for s in ss:
-            configs.append((c, s))
-    
-    return configs
-
-def generate_confusion_matrices():
-    every = 1
-    device = torch.device('cuda:0')
-    ds = DynamicSolarPanelSoilingDataset(4, "PanelImages", segmentation_model=None, every=every, format='PNG', transform=transforms.ToTensor())
-
-    configs = generate_configs()
-
-    for i, config in enumerate(configs):
-        c, s = config
-        build_confusion_matrix(c, s, ds, every, device)
-
-        print(f"Generate confusion matrix for config {i+1}")
 
 def put_pallete(img, path):
     t = torch.tensor(img)
@@ -433,3 +367,21 @@ def generate_label_bar_plot(num_classes):
     plt.ylabel("Num Samples")
     plt.savefig(f"DatasetDistribution{num_classes}.png")
     plt.close()
+
+def resize_examples():
+    path = "figures\\examples\\predictions"
+
+    for n in os.listdir(path):
+        img = cv2.imread(os.path.join(path, n))
+        os.remove(os.path.join(path, n))
+        img = cv2.resize(img, (156, 156), interpolation=cv2.INTER_NEAREST)
+        cv2.imwrite(os.path.join(path, n), img)
+
+    path = "figures\\examples\\images"
+
+    for n in os.listdir(path):
+        img = cv2.imread(os.path.join(path, n))
+        os.remove(os.path.join(path, n))
+        img = cv2.resize(img, (156, 156))
+        cv2.imwrite(os.path.join(path, n), img)
+

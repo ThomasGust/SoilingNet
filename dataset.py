@@ -11,7 +11,7 @@ import cv2
 from glob import glob
 from albumentations import RandomRotate90, GridDistortion, HorizontalFlip, VerticalFlip, HueSaturationValue, GaussianBlur
 import matplotlib.pyplot as plt
-from kerasegmentation import resnetunet, resnetsegnet, fcn32
+from models import resnetunet, resnetsegnet, fcn32
 
 def load_data(path):
     images = os.listdir(os.path.join(path, "images"))

@@ -18,15 +18,9 @@ import matplotlib.pyplot as plt
 import pickle as pkl
 import random
 import cv2
-
+from models import resnetsegnet, resnetunet, fcn32
 import collections
 collections.Iterable = collections.abc.Iterable
-
-
-
-fcn32 = fcn_32(8, input_height=224, input_width=224)
-resnetunet = resnet50_unet(8, 224, 224)
-resnetsegnet = resnet50_segnet(8, 224, 224)
 
 
 def augmentation_stack():
@@ -99,16 +93,6 @@ def build_dataset(m):
 
 
 epochs = 100
-
-"""
-fcn32.train(train_images="DatasetTwo\\train\\Images",train_annotations="DatasetTwo\\train\\ProcessedLabels",checkpoints_path="segmenters_checkpoints\\fcn32\\FCN32", epochs=epochs)
-
-resnetunet.train(train_images="DatasetTwo\\train\\Images", train_annotations="DatasetTwo\\train\\ProcessedLabels", checkpoints_path="segmenters_checkpoints\\resnetunet2\\RESUNET", epochs=epochs)
-
-resnetsegnet.train(train_images="DatasetTwo\\train\\Images",
-            train_annotations="DatasetTwo\\train\\ProcessedLabels",
-            checkpoints_path="segmenters_checkpoints\\segunet1\\SEGUNET", epochs=epochs)
-"""
 
 class KerasSegmentationGraphCallback(keras.callbacks.Callback):
 
@@ -228,21 +212,6 @@ def random_colorize():
     print(np.unique(img))
 
     put_pallete(img, "ColorizedLabelExample.png")
-
-
-#random_colorize()
-
-"""
-resnetunet.load_weights('segmenters_checkpoints\\unet_20\\UNET.99')
-
-
-for i in range(4):
-    img = resnetunet.predict_segmentation(inp=f"examples\\inputs\\test{i+1}.png", out_fname=f'out{i+1}.png')
-    print(img.shape)
-    print(type(img))
-    print(np.unique(img))
-    put_pallete(img, f"out{i+1}")
-"""
 
 
 if __name__ == "__main__":
