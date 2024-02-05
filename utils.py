@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 import shutil
 import random
 from dataset import load_data, augment_data
+from models import resnetsegnet
 
 def get_labels(n_classes, every):
     labels = []
@@ -310,8 +311,6 @@ def tts(path, splits=[0.2, 0.5, 0.7]):
             cv2.imwrite(img_path_dst, img_img)
             cv2.imwrite(label_path_dst, img_label)
             print(np.unique(img_label))
-            #shutil.copyfile(img_path_src, img_path_dst)
-            #shutil.copyfile(label_path_src, label_path_dst)
         
         for sample in test_dataset:
             img_name, label_name = sample
@@ -327,6 +326,7 @@ def tts(path, splits=[0.2, 0.5, 0.7]):
 def random_colorize(i, mod, n):
     num = random.randint(0, len(os.listdir("PanelImages")))
 
+
     img_path = os.path.join("PanelImages", os.listdir("PanelImages")[num])
     src_img = cv2.imread(img_path)
     mask = mod.predict_segmentation(img_path)
@@ -334,6 +334,22 @@ def random_colorize(i, mod, n):
     cv2.imwrite(f"{n}IMG{i}.png", src_img)
     
     put_pallete(mask, f"{n}OUT{i}")
+
+def random_colorize_image_label(i, num):
+
+    img_path = os.path.join("AugmentedDataset\\images", os.listdir("AugmentedDataset\\images")[num])
+    label_path = os.path.join("AugmentedDataset\\labels", os.listdir("AugmentedDataset\\labels")[num])
+
+    img = cv2.imread(img_path)
+    label = cv2.imread(label_path)
+
+    cv2.imwrite(f"IMG{i}.png", img)
+
+    label = np.moveaxis(label, 2, 0)
+    label = label[0]
+
+    print(label.shape)
+    put_pallete(label, f"OUT{i}")
 
 def apply_data_augmentation():
     shutil.rmtree("AugmentedDataset\\images")
@@ -385,3 +401,7 @@ def resize_examples():
         img = cv2.resize(img, (156, 156))
         cv2.imwrite(os.path.join(path, n), img)
 
+if __name__ == "__main__":
+
+    for i, n in enumerate(range(0, 170)[::10]):
+        random_colorize(i, n)
