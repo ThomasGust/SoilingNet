@@ -1,5 +1,9 @@
 # SoilingNet
 ## Sorry for how messy the code is right now, I should probably clean it up :(
+*Update* what I think are the latest weights are attached here: [Segmentation Weights](https://drive.google.com/file/d/1829M9qiGXcGVNZjZ3yax8MbA9fz9fvPB/view?usp=sharing), [Classification Weights](https://drive.google.com/file/d/1q7K6P6Jm1_QeO9gCmn8DvIEFUu--pd5P/view?usp=sharing). Apologies if those are not correct
+
+I also just uploaded the paper to this repository. It is not anywhere near the level of rigor required for a scientific journal, it is really just a 7th grade lab report. Up here for storage and if anyone is interested.
+
 This repository is for the SoilingNet Project. Soiling Net is an AI model to analyze soiling and power loss on photovoltaic panels, with the ultimate goal of making solar panel maintenance easier for everyone. 
 
 Credit to the DeepSolarEye project for the dataset we use for this project:
